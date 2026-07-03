@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% set active_page = "health" %}
+
+{% block title %}System-Status &ndash; Ausschreibungs-Wecker Europa{% endblock %}
+
+{% block content %}
+<h1>&#128187; System-Status</h1>
+
+<!-- System-Uebersicht -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-icon">&#128221;</span>
+        <span class="stat-value">{{ total_tenders }}</span>
+        <span class="stat-label">Ausschreibungen gesamt</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">&#127942;</span>
+        <span class="stat-value">{{ total_matches }}</span>
+        <span class="stat-label">Matches gesamt</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">&#128100;</span>
+        <span class="stat-value">{{ total_profiles }}</span>
+        <span class="stat-label">Profile</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">&#127381;</span>
+        <span class="stat-value">{{ new_matches }}</span>
+        <span class="stat-label">Neue Matches</span>
+    </div>
+</div>
+
+<!-- Status-Pro-Land -->
+<h2>&#127758; Stats pro Land</h2>
+<div class="table-responsive">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Land</th>
+                <th>Ausschreibungen</th>
+                <th>Matches</th>
+                <th>Neu</th>
+                <th>Gespeichert</th>
+                <th>Benachrichtigt</th>
+                <th>Ignoriert</th>
+                <th>&Oslash; Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in country_stats %}
+            <tr>
+                <td>
+                    <span class="country-cell">
+                        {{ eu_countries[row.country].flag if row.country in eu_countries else "&#127758;" }}
+                        {{ eu_countries[row.country].name if row.country in eu_countries else row.country }}
+                    </span>
+                </td>
+                <td class="td-right">{{ row.tender_count }}</td>
+                <td class="td-right">{{ row.match_count }}</td>
+                <td class="td-right">{{ row.new_count }}</td>
+                <td class="td-right">{{ row.saved_count }}</td>
+                <td class="td-right">{{ row.notified_count }}</td>
+                <td class="td-right">{{ row.dismissed_count }}</td>
+                <td class="td-right">
+                    <span class="score-badge score-{% if row.avg_score >= 80 %}high{% elif row.avg_score >= 50 %}mid{% else %}low{% endif %}">
+                        {{ "%.0f"|format(row.avg_score) if row.avg_score else "&mdash;" }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Quellen-Status -->
+<h2>&#128260; Scraping-Quellen</h2>
+<div class="source-grid">
+    {% for src in source_stats %}
+    <div class="source-card">
+        <div class="source-header">
+            <span class="source-name">{{ src.name }}</span>
+            <span class="source-status status-{{ src.status }}">{{ src.status_text }}</span>
+        </div>
+        <div class="source-stats">
+            <div class="source-stat">
+                <span class="source-stat-value">{{ src.tender_count }}</span>
+                <span class="source-stat-label">Ausschreibungen</span>
+            </div>
+            <div class="source-stat">
+                <span class="source-stat-value">{{ src.last_run or "&mdash;" }}</span>
+                <span class="source-stat-label">Letzter Lauf</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- API-Doku -->
+<h2>&#128203; API-Endpunkte</h2>
+<div class="api-docs">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Methode</th>
+                <th>Endpunkt</th>
+                <th>Beschreibung</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>GET</td><td><code>/</code></td><td>Match-Liste (HTML)</td></tr>
+            <tr><td>GET</td><td><code>/tenders</code></td><td>Ausschreibungen (HTML)</td></tr>
+            <tr><td>GET</td><td><code>/profile</code></td><td>Firmenprofil (HTML)</td></tr>
+            <tr><td>POST</td><td><code>/profile</code></td><td>Profil speichern</td></tr>
+            <tr><td>GET</td><td><code>/health</code></td><td>System-Status (HTML)</td></tr>
+            <tr><td>GET</td><td><code>/api/health</code></td><td>Health-Check (JSON)</td></tr>
+            <tr><td>POST</td><td><code>/api/scrape</code></td><td>Scraping manuell starten</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% set active_page = "tenders" %}
+
+{% block title %}Ausschreibungen &ndash; Ausschreibungs-Wecker Europa{% endblock %}
+
+{% block content %}
+<h1>&#128221; Alle Ausschreibungen</h1>
+
+<!-- Filter-Leiste -->
+<div class="filter-bar" hx-boost="true">
+    <div class="filter-group filter-search">
+        <label for="q">Suche:</label>
+        <input type="text" id="q" name="q" value="{{ q or '' }}" placeholder="Titel, Beschreibung, Vergabestelle..."
+               hx-get="/tenders" hx-target="#tender-table" hx-trigger="keyup changed delay:300ms"
+               hx-push-url="true" hx-include="[name='country']">
+    </div>
+
+    <div class="filter-group">
+        <label for="tender-country-filter">Land:</label>
+        <select id="tender-country-filter" name="country" class="filter-select"
+                hx-get="/tenders" hx-target="#tender-table" hx-trigger="change" hx-push-url="true"
+                hx-include="[name='q']">
+            <option value="" {% if not selected_country %}selected{% endif %}>Alle L&auml;nder</option>
+            {% for code, info in eu_countries.items() %}
+            <option value="{{ code }}" {% if selected_country == code %}selected{% endif %}>{{ info.flag }} {{ info.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <span class="badge badge-info">{{ total }} Ausschreibungen</span>
+    </div>
+</div>
+
+<!-- Tender-Tabelle -->
+<div id="tender-table">
+    {% if tenders %}
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Land</th>
+                    <th>Titel</th>
+                    <th>Vergabestelle</th>
+                    <th>Sprache</th>
+                    <th>Deadline</th>
+                    <th>Wert</th>
+                    <th>Quelle</th>
+                    <th>Aktion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tenders %}
+                <tr>
+                    <td class="td-center">
+                        <span class="country-cell" title="{{ eu_countries[t.country].name if t.country in eu_countries else t.country }}">
+                            {{ eu_countries[t.country].flag if t.country in eu_countries else "&#127758;" }}
+                        </span>
+                    </td>
+                    <td class="td-title">{{ t.title }}</td>
+                    <td>{{ t.buyer or "&mdash;" }}</td>
+                    <td class="td-center">{{ t.language|upper }}</td>
+                    <td class="td-center">
+                        {% if t.deadline %}
+                            <span {% if t.days_left is not none and t.days_left < 7 %}class="deadline-urgent"
+                                  {% elif t.days_left is not none and t.days_left < 14 %}class="deadline-soon"
+                                  {% endif %}>
+                                {{ t.deadline.strftime("%d.%m.%Y") }}
+                            </span>
+                            {% if t.days_left is not none %}
+                            <small>({{ t.days_left }} Tage)</small>
+                            {% endif %}
+                        {% else %}&mdash;{% endif %}
+                    </td>
+                    <td class="td-right">
+                        {% if t.estimated_value %}
+                            {{ "{:,.0f}".format(t.estimated_value).replace(",", "'") }} {{ t.currency or "EUR" }}
+                        {% else %}&mdash;{% endif %}
+                    </td>
+                    <td class="td-center"><span class="source-badge">{{ t.source }}</span></td>
+                    <td class="td-center">
+                        {% if t.url %}
+                        <a href="{{ t.url }}" target="_blank" class="btn btn-sm btn-primary" title="Original-Ausschreibung">
+                            &#128279;
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="pagination" hx-boost="true">
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}{% if q %}&q={{ q }}{% endif %}{% if selected_country %}&country={{ selected_country }}{% endif %}"
+           class="btn btn-sm" hx-target="#tender-table">&laquo; Zur&uuml;ck</a>
+        {% endif %}
+        <span class="page-info">Seite {{ page }} von {{ total_pages }}</span>
+        {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}{% if q %}&q={{ q }}{% endif %}{% if selected_country %}&country={{ selected_country }}{% endif %}"
+           class="btn btn-sm" hx-target="#tender-table">Weiter &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-icon">&#128270;</p>
+        <h2>Keine Ausschreibungen gefunden</h2>
+        <p>Keine Ausschreibungen passen zu deinem Filter.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
