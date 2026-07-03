@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Profil - Ausschreibungs-Wecker Europa{% endblock %}
+{% block content %}
+<h1>Firmenprofil</h1>
+<form method="post" action="/profile" class="form-card">
+    <div class="form-group">
+        <label for="name">Firmenname</label>
+        <input type="text" id="name" name="name" value="{{ profile.name }}" required>
+    </div>
+    <div class="form-group">
+        <label for="description">Beschreibung (Kernleistungen)</label>
+        <textarea id="description" name="description" rows="4">{{ profile.description }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="keywords">Keywords (JSON-Liste, z.B. ["Bau", "IT"])</label>
+        <textarea id="keywords" name="keywords" rows="2">{{ profile.keywords }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="cpv_whitelist">CPV-Whitelist (JSON, z.B. ["45110000"])</label>
+        <textarea id="cpv_whitelist" name="cpv_whitelist" rows="2">{{ profile.cpv_whitelist }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="regions">Regionen/NUTS (JSON, z.B. ["DE301", "CH03"])</label>
+        <textarea id="regions" name="regions" rows="2">{{ profile.regions }}</textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Länder (leer = alle)</label>
+        <div class="country-grid">
+            {% for code, label in all_countries %}
+            <label class="country-checkbox">
+                <input type="checkbox" name="countries" value="{{ code }}" {% if code in selected_countries %}checked{% endif %}>
+                {{ label }}
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Angebotssprachen</label>
+        <div class="language-grid">
+            {% for code, label in all_languages %}
+            <label class="language-checkbox">
+                <input type="checkbox" name="languages_ok" value="{{ code }}" {% if code in selected_languages %}checked{% endif %}>
+                {{ label }}
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="min_deadline_days">Min. Deadline-Tage</label>
+        <input type="number" id="min_deadline_days" name="min_deadline_days" value="{{ profile.min_deadline_days }}" min="0" max="365">
+    </div>
+    <button type="submit" class="btn btn-primary">Speichern</button>
+</form>
+{% endblock %}

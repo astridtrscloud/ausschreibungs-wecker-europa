@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Matches - Ausschreibungs-Wecker Europa{% endblock %}
+{% block content %}
+<div class="stats-bar">
+    <div class="stat-card"><span class="stat-number">{{ counts.matches }}</span><span class="stat-label">Matches</span></div>
+    <div class="stat-card"><span class="stat-number stat-new">{{ counts.new }}</span><span class="stat-label">Neu</span></div>
+    <div class="stat-card"><span class="stat-number">{{ counts.notified }}</span><span class="stat-label">Benachrichtigt</span></div>
+    <div class="stat-card"><span class="stat-number">{{ counts.saved }}</span><span class="stat-label">Gemerkt</span></div>
+</div>
+
+<div class="filters-row">
+    <div class="filters">
+        <a href="/" class="filter-btn {% if not filter_status %}active{% endif %}">Alle</a>
+        <a href="/?status=new" class="filter-btn {% if filter_status == 'new' %}active{% endif %}">Neu</a>
+        <a href="/?status=notified" class="filter-btn {% if filter_status == 'notified' %}active{% endif %}">Benachrichtigt</a>
+        <a href="/?status=saved" class="filter-btn {% if filter_status == 'saved' %}active{% endif %}">Gemerkt</a>
+        <a href="/?status=dismissed" class="filter-btn {% if filter_status == 'dismissed' %}active{% endif %}">Verworfen</a>
+    </div>
+    <div class="country-filters">
+        <span>Land:</span>
+        {% for code, label in all_countries %}
+            {% if code in country_counts %}
+            <a href="/?country={{ code }}" class="country-badge {% if filter_country == code %}active{% endif %}" title="{{ label }}">{{ label }}</a>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% if matches %}
+    {% for item in matches %}
+    <div class="match-card">
+        <div class="match-header">
+            <div class="match-score score-{{ item.match.score // 10 }}0">{{ item.match.score }}</div>
+            <div class="match-info">
+                <div class="match-title">{{ item.tender.title }}</div>
+                <div class="match-country">{% if item.tender.country %}{% if item.tender.country == 'DE' %}🇩🇪{% elif item.tender.country == 'CH' %}🇨🇭{% elif item.tender.country == 'FR' %}🇫🇷{% elif item.tender.country == 'AT' %}🇦🇹{% elif item.tender.country == 'IT' %}🇮🇹{% else %}[{{ item.tender.country }}]{% endif %} {{ item.tender.country }}{% endif %}</div>
+            </div>
+        </div>
+        <div class="match-body">
+            <p class="match-reasoning">{{ item.match.reasoning }}</p>
+            <div class="match-meta">
+                <span>Vergabestelle: {{ item.tender.buyer or 'n/a' }}</span>
+                <span>Region: {{ item.tender.region or 'n/a' }}</span>
+                <span>Deadline: {{ item.tender.deadline.strftime('%d.%m.%Y') if item.tender.deadline else 'n/a' }}</span>
+                {% if item.tender.estimated_value %}<span class="value">{{ "{:,.0f}".format(item.tender.estimated_value) }} {{ item.tender.currency }}</span>{% endif %}
+            </div>
+            {% if item.tender.url %}<a href="{{ item.tender.url }}" target="_blank" class="btn btn-primary">Ausschreibung öffnen</a>{% endif %}
+        </div>
+        <div class="match-actions">
+            <span class="badge badge-{{ item.match.status }}">{{ item.match.status }}</span>
+            <button class="btn btn-sm" hx-post="/matches/{{ item.match.id }}/status" hx-vals='{"status": "saved"}' hx-target="closest .match-card" hx-swap="outerHTML">⭐ Merken</button>
+            <button class="btn btn-sm btn-danger" hx-post="/matches/{{ item.match.id }}/status" hx-vals='{"status": "dismissed"}' hx-target="closest .match-card" hx-swap="outerHTML">🗑️ Verwerfen</button>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state"><p>Keine Matches gefunden.</p><p>Matches werden automatisch erstellt, wenn der Scheduler läuft.</p></div>
+{% endif %}
+{% endblock %}

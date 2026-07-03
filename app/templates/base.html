@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ausschreibungs-Wecker Europa{% endblock %}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span>🔔</span> Ausschreibungs-Wecker <span class="nav-sub">Europa</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Matches</a>
+            <a href="/tenders" class="{% if request.url.path == '/tenders' %}active{% endif %}">Ausschreibungen</a>
+            <a href="/profile" class="{% if request.url.path == '/profile' %}active{% endif %}">Profil</a>
+            <a href="/health" class="{% if request.url.path == '/health' %}active{% endif %}">Health</a>
+        </div>
+        <div class="nav-user">{{ user }}</div>
+    </nav>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>Ausschreibungs-Wecker Europa v2.0 &bull; KI-gestützte Ausschreibungsüberwachung</p>
+    </footer>
+</body>
+</html>
